@@ -3,12 +3,20 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild": "rm -rf dist",
+    "build": "esbuild index.ts --bundle --minify --sourcemap  --outfile=dist/index.js",
+    "postbuild": "cd dist && zip -r index.zip index.js*"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "esbuild": "^0.17.16",
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.114",
+    "aws-lambda": "^1.0.7"
   }
 }
