@@ -6,9 +6,9 @@
     "test": "base64 testPayload.json > encodedTestPayload && aws lambda invoke --function-name wasArticleSeenBefore --payload file://encodedTestPayload --no-cli-auto-prompt  testResults && cat testResults | cut -c -500",
     "upload": "npm run build && aws lambda update-function-code --no-cli-auto-prompt --function-name wasArticleSeenBefore --zip-file fileb://dist/index.zip && sleep 10s && npm test",
     "view": "jq \".\" testResults | less",
-    "prebuild": "rm -rf dist",
-    "build": "esbuild index.ts --bundle --minify --sourcemap  --outfile=dist/index.js",
-    "postbuild": "cd dist && zip -r index.zip index.js*"
+"prebuild": "rm -rf dist",
+  "build": "esbuild index.ts --bundle --minify --sourcemap --platform=node --target=es2020 --outfile=dist/index.js",
+  "postbuild": "cd dist && zip -r index.zip index.js*"
   },
   "author": "",
   "license": "ISC",
