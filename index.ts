@@ -1,5 +1,5 @@
 import { Handler, Context } from 'aws-lambda';
-import { DynamoDBClient, ListTablesCommand, GetItemCommand, BatchGetItemCommand, BatchGetItemInput, KeysAndAttributes} from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, ListTablesCommand, GetItemCommand, BatchGetItemCommand, BatchGetItemInput, KeysAndAttributes, BatchGetItemCommandOutput} from '@aws-sdk/client-dynamodb'
 
 
 
@@ -55,13 +55,23 @@ const input = {
 const AWS_REGION: string = 'us-east-1'
 const client = new DynamoDBClient({ region: AWS_REGION });
 
+function parseResults(res: BatchGetItemCommandOutput){
+ let resWithoutMetadata = res.Responses[TABLE_NAME]
+  return [resWithoutMetadata, "hello"]
+  resWithoutMetadata.map((item) => {
+    for(const key in item){
+      const extraKeyObject = item[key]
+      item[key] = Object.values(extraKeyObject)
+    }
+  })
+}
 
 export const handler: Handler = async (event, context: Context, callback) => {
   // const command = new GetItemCommand(input)
   const command = new BatchGetItemCommand(batchInput)
   try {
     const results = await client.send(command);
-    const res = results
+    const res = parseResults(results)
     console.log(res);
     callback(null,res)
   } catch (err) {
