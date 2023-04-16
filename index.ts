@@ -1,6 +1,6 @@
 import { Handler, Context } from 'aws-lambda';
 import { DynamoDBClient, ListTablesCommand, GetItemCommand, BatchGetItemCommand, BatchGetItemInput, KeysAndAttributes, BatchGetItemCommandOutput} from '@aws-sdk/client-dynamodb'
-
+import { DynamoDBDocumentClient, BatchGetCommand, BatchGetCommandInput } from "@aws-sdk/lib-dynamodb"; // ES6 import
 
 
 const TABLE_NAME: string = 'discord-resources'
@@ -38,7 +38,61 @@ const batchInput: BatchGetItemInput = {
         }
     }
 }
-
+const batchInputCommandForDocClient = new BatchGetCommand({
+          RequestItems: {
+            'discord-resources': {
+              Keys: [
+                {
+                  pk: "pubmedArticle",
+                  sk: "37037067#10.1016/j.bbrc.2023.03.084",
+                },
+                {
+                  pk: "article",
+                  sk: "10.1097/JCMA.0000000000000921",
+                },
+              ],
+              // For this use case, the data does not changed often so why not get the
+              // reads at half the cost? Your use case might be different and need true.
+              ConsistentRead: false,
+            },
+          },
+          //This line returns in the response how much capacity the batch get uses
+          ReturnConsumedCapacity: "TOTAL",
+        })
+// const batchInputForDocClient: BatchGetCommandInput = {
+//     RequestItems: {
+//         'discord-resources': {
+//            Keys: [
+//                 {
+//                     "resource-name": {
+//                       "pubmedArticle"
+//                     },
+//                     "sort-key": {
+//                       "37037067#10.1016/j.bbrc.2023.03.084"
+//                     }
+//                 },
+//                 {
+//                     "resource-name": {
+//                       "article"
+//                     },
+//                     "sort-key": {
+//                       "10.1097/JCMA.0000000000000921"
+//                     }
+//                 },
+//                 {
+//                     "resource-name": {
+//                       "article"
+//                     },
+//                     "sort-key": {
+//                       "asdasdas"
+//                     }
+//                 }
+//             ],
+//         ProjectionExpression: "#S, serverMap",
+//         ExpressionAttributeNames: {"#S": "sort-key"}
+//         }
+//     }
+// }
 
 const input = {
   "Key": {
@@ -53,13 +107,15 @@ const input = {
 };
 
 const AWS_REGION: string = 'us-east-1'
-const client = new DynamoDBClient({ region: AWS_REGION });
+const baseClient = new DynamoDBClient({ region: AWS_REGION });
+const client = DynamoDBDocumentClient.from(baseClient); // client is DynamoDB client
 
 function parseResults(res: BatchGetItemCommandOutput){
  let resWithoutMetadata = res.Responses[TABLE_NAME]
   return [resWithoutMetadata, "hello"]
   resWithoutMetadata.map((item) => {
     for(const key in item){
+      item 
       const extraKeyObject = item[key]
       item[key] = Object.values(extraKeyObject)
     }
@@ -68,9 +124,9 @@ function parseResults(res: BatchGetItemCommandOutput){
 
 export const handler: Handler = async (event, context: Context, callback) => {
   // const command = new GetItemCommand(input)
-  const command = new BatchGetItemCommand(batchInput)
+  const command = new BatchGetCommand(batchInput)
   try {
-    const results = await client.send(command);
+    const results = await client.send(batchInputCommandForDocClient);
     const res = parseResults(results)
     console.log(res);
     callback(null,res)
