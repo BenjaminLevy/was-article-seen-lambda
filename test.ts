@@ -1,5 +1,5 @@
 import { Handler, Context } from 'aws-lambda';
-import { DynamoDB } from 'aws-sdk'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 const TABLE_NAME: string = 'discord-resources'
 
@@ -8,17 +8,17 @@ console.log("hey")
 function mockCallback(error, data){
     const retObj = {
         error: error,
+        
         data: data
     }
     console.log(retObj)
 }
 
 const handler = (event, context: Context, callback) => {
-    return "HELLO"warn
     console.warn("lessss gooooo")
     console.log("lessss gooooo")
     // try{ 
-    // const DDBClient = new DynamoDB.DocumentClient()
+    const DDBClient = new DynamoDB.DocumentClient()
     // console.log(DDBClient)
     // } catch(e){
     //     callback(e,null)
